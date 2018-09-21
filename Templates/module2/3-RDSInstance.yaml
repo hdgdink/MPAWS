@@ -1,0 +1,81 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  Subnets:
+    Description: "Select the Subnets IDs"
+    Type: List<AWS::EC2::Subnet::Id>
+
+  VPCSecurityGroups:
+    Description: "Select VPC security groups for DBInstance"
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+  RDSPassword:
+    Description: "Password for RDS instance"
+    Type: String
+    NoEcho: true
+    Default: "rootroot"
+
+  RDSUserName:
+    Description: "User name for RDS instance"
+    Type: String
+    Default: "root"
+
+  SlowQLValue:
+    Description: "Value for parameter Slow Query Log, 0 or 1 values available"
+    Type: Number
+    Default: 0
+    AllowedValues:
+      - 0
+      - 1
+
+  DBInstanceType:
+    Description: "Pre-defined list of types for DB instance"
+    Type: String
+    Default: "db.t2.micro"
+    AllowedValues:
+      - "db.t2.small"
+      - "db.t2.medium"
+      - "db.t2.micro"
+
+  RDSInstanceName:
+    Description: "The name for DB Instance"
+    Type: String
+    Default: "AWSMPDBInstance"
+
+Resources:
+  AWSMPDBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupDescription: "includes subnets in two regions us-east-1a and us-east-1b"
+      SubnetIds: !Ref Subnets
+
+  RDSDBParameterGroup:
+    Type: "AWS::RDS::DBParameterGroup"
+    Properties:
+      Description: "MySQL5.7 and slow query log parameters for DB Instance"
+      Family: MySQL5.7
+      Parameters:
+        slow_query_log: !Ref SlowQLValue
+
+  AWSMPDataBase:
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      DBInstanceClass: !Ref DBInstanceType
+      DBName: !Ref RDSInstanceName
+      PubliclyAccessible: true
+      AllocatedStorage: "20"
+      StorageType: "gp2"
+      Engine: "MySQL"
+      EngineVersion: "5.7"
+      DBParameterGroupName: !Ref RDSDBParameterGroup
+      MasterUsername: !Ref RDSUserName
+      MasterUserPassword: !Ref RDSPassword
+      MultiAZ: false
+      VPCSecurityGroups: !Ref VPCSecurityGroups
+      DBSubnetGroupName: !Ref AWSMPDBSubnetGroup
+
+Outputs:
+  RDSEnpointAdress:
+    Description: "EndPoint address of RDS Instance"
+    Value: !GetAtt AWSMPDataBase.Endpoint.Address

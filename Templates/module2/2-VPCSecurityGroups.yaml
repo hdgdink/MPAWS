@@ -1,0 +1,87 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  VpcID:
+    Description: "Non-default VPC with Dns Support and Dns Hostnames options enabled and InternetGateway attached"
+    Type: "AWS::EC2::VPC::Id"
+
+Mappings:
+  AllowedIPs:
+    Offices:
+      Karaganda1: 91.185.25.194/30
+      Karaganda2: 85.29.138.28/30
+    Home:
+      MyHome: 2.132.204.18/32
+
+Resources:
+  AdminSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allowing all incoming connections from my IP address and the IP address of Karaganda EPAM office"
+      VpcId: !Ref VpcID
+      SecurityGroupIngress:
+        - IpProtocol: "-1"
+          CidrIp: !FindInMap [AllowedIPs, Home, MyHome]
+        - IpProtocol: "-1"
+          CidrIp: !FindInMap [AllowedIPs, Offices, Karaganda1]
+        - IpProtocol: "-1"
+          CidrIp: !FindInMap [AllowedIPs, Offices, Karaganda2]
+
+  ELBSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allowing incoming HTTP connections from anywhere"
+      VpcId: !Ref VpcID
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
+        CidrIp: 0.0.0.0/0
+
+  EC2SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allowing incoming HTTP connections from members of ELB security group"
+      VpcId: !Ref VpcID
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
+        SourceSecurityGroupId: !Ref ELBSecurityGroup
+
+  RDSSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allowing incoming MySQL connections from members of EC2 security group"
+      VpcId: !Ref VpcID
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: '3306'
+        ToPort: '3306'
+        SourceSecurityGroupId: !Ref EC2SecurityGroup
+
+Outputs:
+  VPCAdminSecurityGroupId:
+    Description: "The ID of VPC Admin Security Group"
+    Value: !Ref AdminSecurityGroup
+    Export:
+      Name: VPCAdminSecurityGroupId
+
+  VPCELBSecurityGroupId:
+      Description: "The ID of VPC ELB Security Group"
+      Value: !Ref ELBSecurityGroup
+      Export:
+        Name: VPCELBSecurityGroupId
+
+  VPCEC2SecurityGroupId:
+      Description: "The ID of VPC EC2 Security Group"
+      Value: !Ref EC2SecurityGroup
+      Export:
+        Name: VPCEC2SecurityGroupId
+
+  VPCRDSSecurityGroupId:
+      Description: "The ID of VPC RDS Security Group"
+      Value: !Ref RDSSecurityGroup
+      Export:
+        Name: VPCRDSSecurityGroupId

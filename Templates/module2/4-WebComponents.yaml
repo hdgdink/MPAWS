@@ -1,0 +1,133 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  VPCId:
+    Description:  "Non-default VPC with Dns Support and Dns Hostnames options enabled and InternetGateway attached"
+    Type: "AWS::EC2::VPC::Id"
+
+  Subnets:
+    Description: "Select the Subnets IDs"
+    Type: List<AWS::EC2::Subnet::Id>
+
+  VPCSecurityGroups:
+    Description: "Select ELB and EC2 VPC security groups"
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+  RDSPassword:
+    Description: "Password for RDS instance"
+    Type: String
+    NoEcho: true
+    Default: "rootroot"
+
+  RDSUserName:
+    Description: "User name for RDS instance"
+    Type: String
+    Default: "root"
+
+  KeyName:
+      Description: "Name of an existing EC2 KeyPair to enable SSH access to the instance"
+      Type: "AWS::EC2::KeyPair::KeyName"
+
+  InstanceType:
+    Description: "EC2 instance type"
+    Type: String
+    Default: "t2.micro"
+    AllowedValues:
+      - "t1.micro"
+      - "t2.micro"
+      - "t2.small"
+
+  RDSEndPointAddress:
+    Description: "End point address for existed RDS instance"
+    Type: String
+
+  ASGMinInstanceCount:
+    Description: "Minimal count of instance"
+    Type: String
+    Default: "2"
+
+  ASGMaxInstanceCount:
+    Description: "Maximal count of instance"
+    Type: String
+    Default: "2"
+
+Mappings:
+  AWSRegionAMI:
+    us-east-1:
+      AMI: "ami-04681a1dbd79675a5"
+    us-east-2:
+      AMI: "ami-0cf31d971a3ca20d6"
+    us-west-1:
+      AMI: "ami-0782017a917e973e7"
+    us-west-2:
+      AMI: "ami-6cd6f714"
+
+Resources:
+
+  AWSMPELB:
+    Type: "AWS::ElasticLoadBalancing::LoadBalancer"
+    Properties:
+      Listeners:
+        - LoadBalancerPort: "80"
+          InstancePort: "80"
+          Protocol: HTTP
+          InstanceProtocol: HTTP
+      Subnets: !Ref Subnets
+      SecurityGroups: !Ref VPCSecurityGroups
+      LoadBalancerName: "AWSMPELB"
+
+  AWSMPLauchConfig:
+    Type: "AWS::AutoScaling::LaunchConfiguration"
+    Properties:
+      KeyName: !Ref KeyName
+      ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", AMI]
+      SecurityGroups: !Ref VPCSecurityGroups
+      InstanceType: !Ref InstanceType
+      UserData:
+        'Fn::Base64':
+          !Sub |
+            #!/bin/bash
+
+            set -e
+
+            sudo yum update -y
+            sudo yum install -y httpd php php-mysql
+            sudo systemctl enable httpd
+            sudo systemctl start httpd
+
+            echo "Procces.."
+            touch /var/www/html/index.php
+            echo "<?php
+            \$servername = "'"${RDSEndPointAddress}"'";
+            \$username = "'"${RDSUserName}"'";
+            \$password = "'"${RDSPassword}"'";
+            \$hostname = gethostname();
+            \$conn = new mysqli(\$servername, \$username, \$password);
+            if (\$conn->connect_error) {
+                die("'"$hostname: connection failed ("' . "\$conn->connect_error . "'")"'");
+            }
+            echo "'"$hostname: successfully connected to $servername"'";
+            ?>" >> /var/www/html/index.php
+            sudo systemctl restart httpd;
+            echo "Completed"
+      InstanceMonitoring: true
+      AssociatePublicIpAddress: true
+
+  AWSMPAutoScalingGroup:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      LaunchConfigurationName: !Ref AWSMPLauchConfig
+      VPCZoneIdentifier: !Ref  Subnets
+      LoadBalancerNames:
+        - !Ref AWSMPELB
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+      MaxSize: !Ref ASGMaxInstanceCount
+      MinSize: !Ref ASGMinInstanceCount
+
+Outputs:
+  ELBDomainName:
+    Description: "Elastic Load Balancer domain name"
+    Value:
+      Fn::Join: [ "", [ "http://", !GetAtt [AWSMPELB, DNSName] ] ]

@@ -1,0 +1,129 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  VpcCIDR:
+    Type: String
+    Default: 10.123.0.0/16
+
+  InternalSubnetCIDRA:
+    Type: String
+    Default: 10.123.1.0/24
+
+  InternalSubnetCIDRB:
+    Type: String
+    Default: 10.123.2.0/24
+
+  InstanceType:
+    Description: "EC2 instance type"
+    Type: String
+    Default: "t2.micro"
+    AllowedValues:
+      - "t1.micro"
+      - "t2.micro"
+      - "t2.small"
+
+  ASGMinInstanceCount:
+    Description: "Minimal count of instance"
+    Type: String
+    Default: "2"
+
+  ASGMaxInstanceCount:
+    Description: "Maximal count of instance"
+    Type: String
+    Default: "2"
+
+  KeyName:
+    Description: "Name of an existing EC2 KeyPair to enable SSH access to the instance"
+    Type: "AWS::EC2::KeyPair::KeyName"
+
+  DBInstanceType:
+    Description: "Pre-defined list of types for DB instance"
+    Type: String
+    Default: "db.t2.micro"
+    AllowedValues:
+      - "db.t2.small"
+      - "db.t2.medium"
+      - "db.t2.micro"
+
+  SlowQLValue:
+    Description: "Value for parameter Slow Query Log, 0 or 1 values available"
+    Type: Number
+    Default: 0
+    AllowedValues:
+      - 0
+      - 1
+
+  RDSPassword:
+    Description: "Password for RDS instance"
+    Type: String
+    NoEcho: true
+    Default: "rootroot"
+
+  RDSUserName:
+    Description: "User name for RDS instance"
+    Type: String
+    Default: "root"
+
+Mappings:
+  AWSRegionAMI:
+    us-east-1:
+      AMI: "ami-04681a1dbd79675a5"
+    us-east-2:
+      AMI: "ami-0cf31d971a3ca20d6"
+    us-west-1:
+      AMI: "ami-0782017a917e973e7"
+    us-west-2:
+      AMI: "ami-6cd6f714"
+
+Resources:
+  NetworkComponentsStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      Parameters:
+        VpcCIDR: !Ref VpcCIDR
+        InternalSubnetCIDRA: !Ref InternalSubnetCIDRA
+        InternalSubnetCIDRB: !Ref InternalSubnetCIDRB
+      TemplateURL: "https://s3.amazonaws.com/aws.mp.module2/1-NetworkComponents.yaml"
+
+  SecurityGroupsStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      Parameters:
+        VpcID: !GetAtt NetworkComponentsStack.Outputs.AwsMpVPCId
+      TemplateURL: "https://s3.amazonaws.com/aws.mp.module2/2-VPCSecurityGroups.yaml"
+
+  RDSInstanceStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      Parameters:
+        Subnets: !Join [",", [!GetAtt NetworkComponentsStack.Outputs.AWSMPSubnetAId, !GetAtt NetworkComponentsStack.Outputs.AWSMPSubnetBId]]
+        VPCSecurityGroups: !Join [",", [!GetAtt SecurityGroupsStack.Outputs.VPCAdminSecurityGroupId, !GetAtt SecurityGroupsStack.Outputs.VPCRDSSecurityGroupId]]
+        RDSPassword: !Ref RDSPassword
+        RDSUserName: !Ref RDSUserName
+        SlowQLValue: !Ref SlowQLValue
+        DBInstanceType: !Ref DBInstanceType
+      TemplateURL: "https://s3.amazonaws.com/aws.mp.module2/3-RDSInstance.yaml"
+
+  WebComponentsStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      Parameters:
+        VPCId: !GetAtt NetworkComponentsStack.Outputs.AwsMpVPCId
+        Subnets: !Join [",", [!GetAtt NetworkComponentsStack.Outputs.AWSMPSubnetAId, !GetAtt NetworkComponentsStack.Outputs.AWSMPSubnetBId]]
+        VPCSecurityGroups: !Join [",", [!GetAtt SecurityGroupsStack.Outputs.VPCEC2SecurityGroupId, !GetAtt SecurityGroupsStack.Outputs.VPCELBSecurityGroupId]]
+        RDSPassword: !Ref RDSPassword
+        RDSUserName: !Ref RDSUserName
+        KeyName: !Ref KeyName
+        InstanceType: !Ref InstanceType
+        RDSEndPointAddress: !GetAtt RDSInstanceStack.Outputs.RDSEnpointAdress
+        ASGMinInstanceCount: !Ref ASGMinInstanceCount
+        ASGMaxInstanceCount: !Ref ASGMaxInstanceCount
+      TemplateURL: "https://s3.amazonaws.com/aws.mp.module2/4-WebComponents.yaml"
+
+
+Outputs:
+  ELBDomainName:
+    Description: "Elastic Load Balancer domain name"
+    Value:
+      Fn::Join: [ "", [ "http://", !GetAtt [WebComponentsStack, Outputs.ELBDomainName] ] ]
