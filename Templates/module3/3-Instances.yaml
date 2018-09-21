@@ -1,0 +1,90 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  Subnet:
+    Description: "Select the Subnets ID for Instance creation "
+    Type: "AWS::EC2::Subnet::Id"
+
+  VPCSecurityGroups:
+    Description: "Select Admin and EC2 VPC security groups"
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+  KeyName:
+     Description: "Name of an existing EC2 KeyPair to enable SSH access to the instance"
+     Type: "AWS::EC2::KeyPair::KeyName"
+
+  InstanceType:
+      Description: "EC2 instance type"
+      Type: String
+      Default: "t2.micro"
+      AllowedValues:
+        - "t1.micro"
+        - "t2.micro"
+        - "t2.small"
+
+Mappings:
+  AWSRegionAMI:
+    us-east-1:
+      AMI: "ami-04681a1dbd79675a5"
+    us-east-2:
+      AMI: "ami-0cf31d971a3ca20d6"
+    us-west-1:
+      AMI: "ami-0782017a917e973e7"
+    us-west-2:
+      AMI: "ami-6cd6f714"
+
+Resources:
+
+  AnsIAMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version": "2012-10-17"
+        Statement":
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+
+
+  AnsInstanceProfile:
+    Description: "Profile for Ansible Instance"
+    Type: "AWS::IAM::InstanceProfile"
+
+  AnsibleInstance:
+    Description: "Control instance with Ansible"
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", AMI]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SecurityGroups: !Ref VPCSecurityGroups
+      SubnetId: !Ref Subnet
+      IamInstanceProfile: !Ref AnsInstanceProfile
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+
+            sudo yum update -y
+            sudo amazon-linux-extras install epel
+            sudo yum install ansible
+
+            touch /var/www/html/index.php
+            echo "<?php
+            \$servername = "'"${RDSEndPointAddress}"'";
+            \$username = "'"${RDSUserName}"'";
+            \$password = "'"${RDSPassword}"'";
+            \$hostname = gethostname();
+            \$conn = new mysqli(\$servername, \$username, \$password);
+            if (\$conn->connect_error) {
+            die("'"$hostname: connection failed ("' . "\$conn->connect_error . "'")"'");
+            }
+            echo "'"$hostname: successfully connected to $servername"'";
+            ?>" >> /var/www/html/index.php
+            sudo systemctl restart httpd;
+            echo "Completed"
