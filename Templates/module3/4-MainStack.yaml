@@ -1,1 +1,61 @@
 ---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  VpcCIDR:
+    Type: String
+    Default: 10.123.0.0/16
+
+  InternalSubnetCIDRA:
+    Type: String
+    Default: 10.123.1.0/24
+
+  InstanceType:
+    Description: "EC2 instance type"
+    Type: String
+    Default: "t2.micro"
+    AllowedValues:
+      - "t1.micro"
+      - "t2.micro"
+      - "t2.small"
+
+  KeyName:
+    Description: "Name of an existing EC2 KeyPair to enable SSH access to the instance"
+    Type: "AWS::EC2::KeyPair::KeyName"
+
+Mappings:
+  AWSRegionAMI:
+    us-east-1:
+      AMI: "ami-04681a1dbd79675a5"
+    us-east-2:
+      AMI: "ami-0cf31d971a3ca20d6"
+    us-west-1:
+      AMI: "ami-0782017a917e973e7"
+    us-west-2:
+      AMI: "ami-6cd6f714"
+
+Resources:
+  NetworkComponentsStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      Parameters:
+        VpcCIDR: !Ref VpcCIDR
+        InternalSubnetCIDRA: !Ref InternalSubnetCIDRA
+      TemplateURL: "https://s3.amazonaws.com/aws.mp.module3/1-NetComponents.yaml"
+
+  SecurityGroupsStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      Parameters:
+        VpcID: !GetAtt NetworkComponentsStack.Outputs.AwsMpVPCId
+      TemplateURL: "https://s3.amazonaws.com/aws.mp.module3/2-SecGroups.yaml"
+
+  WebComponentsStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      Parameters:
+        Subnet: !GetAtt NetworkComponentsStack.Outputs.AWSMPSubnetAId
+        VPCSecurityGroups: !Join [",", [!GetAtt SecurityGroupsStack.Outputs.VPCEC2SecurityGroupId, !GetAtt SecurityGroupsStack.Outputs.VPCAdminSecurityGroupId]]
+        KeyName: !Ref KeyName
+        InstanceType: !Ref InstanceType
+      TemplateURL: "https://s3.amazonaws.com/aws.mp.module3/3-Instances.yaml"
