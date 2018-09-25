@@ -61,15 +61,39 @@ Resources:
                 Action: "*"
                 Resource: "*"
 
-
   AnsInstanceProfile:
     Description: "Profile for Ansible Instance"
     Type: "AWS::IAM::InstanceProfile"
     Properties:
       Path: "/"
       Roles:
-        -
-          !Ref: AnsIAMRole
+        - !Ref AnsIAMRole
+
+  WebInstance:
+    Description: "Instance with WEB server"
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", AMI]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SecurityGroups: !Ref VPCSecurityGroups
+      SubnetId: !Ref Subnet
+      IamInstanceProfile: !Ref AnsInstanceProfile
+      InstanceMonitoring: true
+      AssociatePublicIpAddress: true
+
+  WebInstance:
+    Description: "Instance with MySQL server"
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", AMI]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SecurityGroups: !Ref VPCSecurityGroups
+      SubnetId: !Ref Subnet
+      IamInstanceProfile: !Ref AnsInstanceProfile
+      InstanceMonitoring: true
+      AssociatePublicIpAddress: true
 
   AnsibleInstance:
     Description: "Control instance with Ansible"
@@ -89,18 +113,10 @@ Resources:
             sudo yum update -y
             sudo amazon-linux-extras install epel
             sudo yum install ansible
+            cd ~
+            sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey
+            sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey.pub
 
-            touch /var/www/html/index.php
-            echo "<?php
-            \$servername = "'"${RDSEndPointAddress}"'";
-            \$username = "'"${RDSUserName}"'";
-            \$password = "'"${RDSPassword}"'";
-            \$hostname = gethostname();
-            \$conn = new mysqli(\$servername, \$username, \$password);
-            if (\$conn->connect_error) {
-            die("'"$hostname: connection failed ("' . "\$conn->connect_error . "'")"'");
-            }
-            echo "'"$hostname: successfully connected to $servername"'";
-            ?>" >> /var/www/html/index.php
-            sudo systemctl restart httpd;
-            echo "Completed"
+
+      InstanceMonitoring: true
+      AssociatePublicIpAddress: true
