@@ -10,6 +10,10 @@ Parameters:
     Type: String
     Default: 10.123.1.0/24
 
+  InternalSubnetCIDRB:
+    Type: String
+    Default: 10.123.2.0/24
+
 Resources:
   MyVPC:
     Type: "AWS::EC2::VPC"
@@ -47,11 +51,25 @@ Resources:
       MapPublicIpOnLaunch: true
       VpcId: !Ref MyVPC
 
+  AWSMPSubNetB:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: "us-east-1b"
+      CidrBlock: !Ref InternalSubnetCIDRB
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref MyVPC
+
   AWSMPSubARouteTableAssociation:
       Type: "AWS::EC2::SubnetRouteTableAssociation"
       Properties:
         SubnetId: !Ref AWSMPSubNetA
         RouteTableId: !Ref AWSMPRouteTable
+
+  AWSMPSubBRouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref AWSMPSubNetB
+      RouteTableId: !Ref AWSMPRouteTable
 
 Outputs:
   AwsMpVPCId:
@@ -65,3 +83,9 @@ Outputs:
     Value: !Ref AWSMPSubNetA
     Export:
       Name: AWSMPSubnetAId
+
+  AWSMPSubnetBId:
+    Description: "The ID of Subnet B"
+    Value: !Ref AWSMPSubNetB
+    Export:
+      Name: AWSMPSubnetBId
