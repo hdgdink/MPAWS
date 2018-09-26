@@ -89,6 +89,10 @@ Resources:
             - !Ref VPCEC2SecurityGroup
           SubnetId:
             Ref: Subnet
+      Tags:
+        -
+          Key: Name
+          Value: "WEB"
 
   DBInstance:
     Description: "Instance with MySQL server"
@@ -106,6 +110,10 @@ Resources:
             - !Ref VPCEC2SecurityGroup
           SubnetId:
             Ref: Subnet
+      Tags:
+        -
+          Key: Name
+          Value: "Db"
 
   AnsibleInstance:
     Description: "Control instance with Ansible"
@@ -124,13 +132,17 @@ Resources:
           SubnetId:
             Ref: Subnet
       UserData:
-        Fn::Base64:
+        'Fn::Base64':
           !Sub |
             #!/bin/bash
-
+            set -e
             sudo yum update -y
             sudo amazon-linux-extras install -y epel
             sudo yum install -y ansible
             cd ~
             sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey
             sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey.pub
+      Tags:
+        -
+          Key: Name
+          Value: "Ansible"
