@@ -158,6 +158,9 @@ Resources:
             cd ~
             sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey
             sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey.pub
+            cd /etc/ansible/
+            sudo wget https://github.com/hdgdink/MPAWS/blob/master/resources/Ansible/myhosts
+            sudo wget https://github.com/hdgdink/MPAWS/blob/master/resources/Ansible/ansible.cfg
 
       Tags:
         -
