@@ -53,12 +53,6 @@ Resources:
         SubnetId: !Ref AWSMPSubNetA
         RouteTableId: !Ref AWSMPRouteTable
 
-  AWSMPSubBRouteTableAssociation:
-    Type: "AWS::EC2::SubnetRouteTableAssociation"
-    Properties:
-      SubnetId: !Ref AWSMPSubNetB
-      RouteTableId: !Ref AWSMPRouteTable
-
 Outputs:
   AwsMpVPCId:
     Description: "The ID of VPC"

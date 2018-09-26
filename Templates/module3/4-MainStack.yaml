@@ -55,7 +55,8 @@ Resources:
     Properties:
       Parameters:
         Subnet: !GetAtt NetworkComponentsStack.Outputs.AWSMPSubnetAId
-        VPCSecurityGroups: !Join [",", [!GetAtt SecurityGroupsStack.Outputs.VPCEC2SecurityGroupId, !GetAtt SecurityGroupsStack.Outputs.VPCAdminSecurityGroupId]]
+        VPCAdminSecurityGroup: !GetAtt SecurityGroupsStack.Outputs.VPCAdminSecurityGroupId
+        VPCEC2SecurityGroup: !GetAtt SecurityGroupsStack.Outputs.VPCEC2SecurityGroupId
         KeyName: !Ref KeyName
         InstanceType: !Ref InstanceType
       TemplateURL: "https://s3.amazonaws.com/aws.mp.module3/3-Instances.yaml"

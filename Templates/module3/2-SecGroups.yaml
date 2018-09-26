@@ -55,11 +55,7 @@ Outputs:
   VPCAdminSecurityGroupId:
     Description: "The ID of VPC Admin Security Group"
     Value: !Ref AdminSecurityGroup
-    Export:
-      Name: VPCAdminSecurityGroupId
 
   VPCEC2SecurityGroupId:
       Description: "The ID of VPC EC2 Security Group"
       Value: !Ref EC2SecurityGroup
-      Export:
-        Name: VPCEC2SecurityGroupId
