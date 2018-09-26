@@ -6,9 +6,13 @@ Parameters:
     Description: "Select the Subnets ID for Instance creation "
     Type: "AWS::EC2::Subnet::Id"
 
-  VPCSecurityGroups:
-    Description: "Select Admin and EC2 VPC security groups"
-    Type: List<AWS::EC2::SecurityGroup::Id>
+  VPCAdminSecurityGroup:
+    Description: "Select Admin VPC security groups"
+    Type: AWS::EC2::SecurityGroup::Id
+
+  VPCEC2SecurityGroup:
+    Description: "Select EC2 VPC security groups"
+    Type: AWS::EC2::SecurityGroup::Id
 
   KeyName:
      Description: "Name of an existing EC2 KeyPair to enable SSH access to the instance"
@@ -40,8 +44,8 @@ Resources:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
-        Version": "2012-10-17"
-        Statement":
+        Version: "2012-10-17"
+        Statement:
           -
             Effect: "Allow"
             Principal:
@@ -69,31 +73,39 @@ Resources:
       Roles:
         - !Ref AnsIAMRole
 
-  WebInstance:
+  WEBInstance:
     Description: "Instance with WEB server"
     Type: "AWS::EC2::Instance"
     Properties:
       ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", AMI]
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      SecurityGroups: !Ref VPCSecurityGroups
-      SubnetId: !Ref Subnet
       IamInstanceProfile: !Ref AnsInstanceProfile
-      InstanceMonitoring: true
-      AssociatePublicIpAddress: true
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - !Ref VPCAdminSecurityGroup
+            - !Ref VPCEC2SecurityGroup
+          SubnetId:
+            Ref: Subnet
 
-  WebInstance:
+  DBInstance:
     Description: "Instance with MySQL server"
     Type: "AWS::EC2::Instance"
     Properties:
       ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", AMI]
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      SecurityGroups: !Ref VPCSecurityGroups
-      SubnetId: !Ref Subnet
       IamInstanceProfile: !Ref AnsInstanceProfile
-      InstanceMonitoring: true
-      AssociatePublicIpAddress: true
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - !Ref VPCAdminSecurityGroup
+            - !Ref VPCEC2SecurityGroup
+          SubnetId:
+            Ref: Subnet
 
   AnsibleInstance:
     Description: "Control instance with Ansible"
@@ -102,9 +114,15 @@ Resources:
       ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", AMI]
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      SecurityGroups: !Ref VPCSecurityGroups
-      SubnetId: !Ref Subnet
       IamInstanceProfile: !Ref AnsInstanceProfile
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - !Ref VPCAdminSecurityGroup
+            - !Ref VPCEC2SecurityGroup
+          SubnetId:
+            Ref: Subnet
       UserData:
         Fn::Base64:
           !Sub |
@@ -116,7 +134,3 @@ Resources:
             cd ~
             sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey
             sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey.pub
-
-
-      InstanceMonitoring: true
-      AssociatePublicIpAddress: true
