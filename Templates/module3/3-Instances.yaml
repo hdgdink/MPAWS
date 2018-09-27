@@ -94,6 +94,7 @@ Resources:
           !Sub |
             #!/bin/bash
             set -e
+            sudo yum update -y
             cd ~/.ssh/
             sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey.pub
             echo anskey.pub >> authorized_keys
@@ -123,6 +124,7 @@ Resources:
           !Sub |
             #!/bin/bash
             set -e
+            sudo yum update -y
             cd ~/.ssh/
             sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey.pub
             echo anskey.pub >> authorized_keys
@@ -151,17 +153,22 @@ Resources:
         'Fn::Base64':
           !Sub |
             #!/bin/bash
-            set -e
-            sudo yum update -y
-            sudo amazon-linux-extras install -y epel
-            sudo yum install -y ansible
-            cd ~
-            sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey
-            sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey.pub
-            cd /etc/ansible/
-            sudo wget https://github.com/hdgdink/MPAWS/blob/master/resources/Ansible/myhosts
-            sudo wget https://github.com/hdgdink/MPAWS/blob/master/resources/Ansible/ansible.cfg
 
+            set -e
+
+            sudo yum update -y
+            sudo curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+            sudo python get-pip.py
+
+            cd ~
+            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/ansKey
+            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/ansKey.pub
+            cd /etc/ansible/
+            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/ec2.ini
+            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/ec2.py
+            sudo chmod +x /etc/ansible/ec2.py
+            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/Ansible/ansible.cfg
+            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/Ansible/myhosts
       Tags:
         -
           Key: Name
