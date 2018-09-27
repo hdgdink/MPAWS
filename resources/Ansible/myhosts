@@ -5,4 +5,4 @@ db
 web
 
 [Common]
-db,web
+db,web,ansible
