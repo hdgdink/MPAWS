@@ -157,18 +157,18 @@ Resources:
             set -e
 
             sudo yum update -y
-            sudo curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-            sudo python get-pip.py
+            sudo yum install python-pip -y
+            sudo pip install ansible
+            sudo yum install git -y
+            sudo pip install boto
 
             cd ~
-            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/ansKey
-            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/ansKey.pub
-            cd /etc/ansible/
-            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/ec2.ini
-            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/ec2.py
-            sudo chmod +x /etc/ansible/ec2.py
-            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/Ansible/ansible.cfg
-            sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/Ansible/myhosts
+
+            git clone https://github.com/hdgdink/ansible.git
+            sudo chmod +x /home/ec2-user/ansible/ec2.py
+            export EC2_INI_PATH=/home/ec2-user/ansible/ec2.ini
+            export ANSIBLE_HOSTS=/home/ec2-user/ansible/ec2.py
+
       Tags:
         -
           Key: Name

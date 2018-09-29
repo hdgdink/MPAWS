@@ -1,8 +1,8 @@
 [DataBase]
-db
+Db
 
 [WebServer]
-web
+WEB
 
 [Common]
-db,web,ansible
+Db, WEB, Ansible
