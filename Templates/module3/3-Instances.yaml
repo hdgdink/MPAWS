@@ -159,7 +159,8 @@ Resources:
             sudo yum update -y
             sudo curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
             sudo python get-pip.py
-
+            sudo pip install ansible
+            sudo pip install boto
             cd ~
             sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/ansKey
             sudo wget https://raw.githubusercontent.com/hdgdink/MPAWS/master/resources/ansKey.pub
