@@ -95,9 +95,11 @@ Resources:
             #!/bin/bash
             set -e
             sudo yum update -y
-            cd ~/.ssh/
-            sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey.pub
-            echo anskey.pub >> authorized_keys
+            sudo yum install git -y
+
+            git clone https://github.com/hdgdink/ansible.git
+            mv /home/ec2-user/ansible/ansKey /home/ec2/user/.ssh/
+            cat /home/ec2-user/ansible/ansKey.pub >> /home/ec2-user/.ssh/authorized_keys
       Tags:
         -
           Key: Name
@@ -125,9 +127,12 @@ Resources:
             #!/bin/bash
             set -e
             sudo yum update -y
-            cd ~/.ssh/
-            sudo wget https://github.com/hdgdink/MPAWS/tree/master/resources/ansKey.pub
-            echo anskey.pub >> authorized_keys
+            sudo yum install git -y
+
+            git clone https://github.com/hdgdink/ansible.git
+            mv /home/ec2-user/ansible/ansKey /home/ec2/user/.ssh/
+            cat /home/ec2-user/ansible/ansKey.pub >> /home/ec2-user/.ssh/authorized_keys
+
       Tags:
         -
           Key: Name
@@ -162,12 +167,13 @@ Resources:
             sudo yum install git -y
             sudo pip install boto
 
-            cd ~
-
             git clone https://github.com/hdgdink/ansible.git
             sudo chmod +x /home/ec2-user/ansible/ec2.py
             export EC2_INI_PATH=/home/ec2-user/ansible/ec2.ini
             export ANSIBLE_HOSTS=/home/ec2-user/ansible/ec2.py
+
+            mv /home/ec2-user/ansible/ansKey /home/ec2/user/.ssh/
+            cat /home/ec2-user/ansible/ansKey.pub >> /home/ec2-user/.ssh/authorized_keys
 
       Tags:
         -
