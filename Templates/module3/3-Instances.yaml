@@ -96,8 +96,9 @@ Resources:
             set -e
             sudo yum update -y
             sudo yum install git -y
-            git clone https://github.com/hdgdink/ansible.git
-            mv /home/ec2-user/ansible/id_rsa /home/ec2-user/.ssh/
+            sudo git clone https://github.com/hdgdink/ansible.git
+            sudo mv /home/ec2-user/ansible/id_rsa /home/ec2-user/.ssh/
+            sudo chmod 600 /home/ec2-user/.ssh/id_rsa
             cat /home/ec2-user/ansible/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
       Tags:
         -
@@ -127,8 +128,9 @@ Resources:
             set -e
             sudo yum update -y
             sudo yum install git -y
-            git clone https://github.com/hdgdink/ansible.git
-            mv /home/ec2-user/ansible/id_rsa /home/ec2-user/.ssh/
+            sudo git clone https://github.com/hdgdink/ansible.git
+            sudo mv /home/ec2-user/ansible/id_rsa /home/ec2-user/.ssh/
+            sudo chmod 600 /home/ec2-user/.ssh/id_rsa
             cat /home/ec2-user/ansible/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
       Tags:
         -
@@ -163,11 +165,12 @@ Resources:
             sudo pip install ansible
             sudo yum install git -y
             sudo pip install boto
-            git clone https://github.com/hdgdink/ansible.git
+            sudo git clone https://github.com/hdgdink/ansible.git
             sudo chmod +x /home/ec2-user/ansible/ec2.py
             export EC2_INI_PATH=/home/ec2-user/ansible/ec2.ini
             export ANSIBLE_HOSTS=/home/ec2-user/ansible/ec2.py
-            mv /home/ec2-user/ansible/id_rsa /home/ec2-user/.ssh/
+            sudo mv /home/ec2-user/ansible/id_rsa /home/ec2-user/.ssh/
+            sudo chmod 600 /home/ec2-user/.ssh/id_rsa
             cat /home/ec2-user/ansible/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
       Tags:
         -
