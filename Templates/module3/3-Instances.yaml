@@ -169,6 +169,7 @@ Resources:
             sudo chmod +x /home/ec2-user/ansible/ec2.py
             export EC2_INI_PATH=/home/ec2-user/ansible/ec2.ini
             export ANSIBLE_HOSTS=/home/ec2-user/ansible/ec2.py
+            echo "export EC2_INI_PATH=/home/ec2-user/ansible/ec2.ini" >> /home/ec2-user/.bashrc
             sudo mv /home/ec2-user/ansible/id_rsa /home/ec2-user/.ssh/
             sudo chmod 600 /home/ec2-user/.ssh/id_rsa
             cat /home/ec2-user/ansible/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
