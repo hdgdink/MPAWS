@@ -97,9 +97,9 @@ Resources:
             sudo yum update -y
             sudo yum install git -y
             sudo git clone https://github.com/hdgdink/ansible.git
-            sudo mv /home/ec2-user/ansible/id_rsa /home/ec2-user/.ssh/
+            sudo mv /home/ec2-user/ansible/keys/id_rsa /home/ec2-user/.ssh/
             sudo chmod 600 /home/ec2-user/.ssh/id_rsa
-            cat /home/ec2-user/ansible/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
+            cat /home/ec2-user/ansible/keys/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
       Tags:
         -
           Key: Name
@@ -129,9 +129,9 @@ Resources:
             sudo yum update -y
             sudo yum install git -y
             sudo git clone https://github.com/hdgdink/ansible.git
-            sudo mv /home/ec2-user/ansible/id_rsa /home/ec2-user/.ssh/
+            sudo mv /home/ec2-user/ansible/keys/id_rsa /home/ec2-user/.ssh/
             sudo chmod 600 /home/ec2-user/.ssh/id_rsa
-            cat /home/ec2-user/ansible/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
+            cat /home/ec2-user/ansible/keys/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
       Tags:
         -
           Key: Name
@@ -168,11 +168,11 @@ Resources:
             sudo git clone https://github.com/hdgdink/ansible.git
             sudo chmod +x /home/ec2-user/ansible/ec2.py
             export EC2_INI_PATH=/home/ec2-user/ansible/ec2.ini
-            export ANSIBLE_HOSTS=/home/ec2-user/ansible/ec2.py
-            echo "export EC2_INI_PATH=/home/ec2-user/ansible/ec2.ini" >> /home/ec2-user/.bashrc
-            sudo mv /home/ec2-user/ansible/id_rsa /home/ec2-user/.ssh/
+            export ANSIBLE_HOSTS=./inventory/
+            export ANSIBLE_CONFIG=/home/ec2-user/ansible/ansible.cfg
+            sudo mv /home/ec2-user/ansible/keys/id_rsa /home/ec2-user/.ssh/
             sudo chmod 600 /home/ec2-user/.ssh/id_rsa
-            cat /home/ec2-user/ansible/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
+            cat /home/ec2-user/ansible/keys/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
       Tags:
         -
           Key: Name
