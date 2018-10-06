@@ -1,0 +1,30 @@
+---
+# tasks file for db
+- name: Install tools
+  yum: name={{item}} state=present update_cache=yes
+  with_items: 
+    - MySQL-python
+    - mariadb-server
+        
+- name: Start MySQL
+  service:
+    name=mariadb
+    state=started
+    enabled=yes
+
+#- name: Allow incommig SQL connections
+#  lineinfile: dest=/etc/my.cnf
+#  notify: restart mysql
+
+- name: Create Demo DB
+  mysql_db: 
+    name=demo 
+    state=present
+
+- name: Create DB User
+  mysql_user: 
+    name={{ username }} 
+    password={{ password }} 
+    priv='*.*:ALL' 
+    host={{ansible_hostname}} 
+    state=present      

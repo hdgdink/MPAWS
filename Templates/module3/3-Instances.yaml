@@ -94,9 +94,9 @@ Resources:
           !Sub |
             #!/bin/bash
             set -e
-            sudo yum update -y
-            sudo yum install git -y
-            sudo git clone https://github.com/hdgdink/ansible.git
+            sudo yum update -y &&
+            sudo yum install git -y &&
+            sudo git clone https://github.com/hdgdink/ansible.git &&
             sudo mv /home/ec2-user/ansible/keys/id_rsa /home/ec2-user/.ssh/
             sudo chmod 600 /home/ec2-user/.ssh/id_rsa
             cat /home/ec2-user/ansible/keys/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
@@ -126,9 +126,9 @@ Resources:
           !Sub |
             #!/bin/bash
             set -e
-            sudo yum update -y
-            sudo yum install git -y
-            sudo git clone https://github.com/hdgdink/ansible.git
+            sudo yum update -y &&
+            sudo yum install git -y &&
+            sudo git clone https://github.com/hdgdink/ansible.git &&
             sudo mv /home/ec2-user/ansible/keys/id_rsa /home/ec2-user/.ssh/
             sudo chmod 600 /home/ec2-user/.ssh/id_rsa
             cat /home/ec2-user/ansible/keys/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
@@ -160,19 +160,24 @@ Resources:
 
             set -e
 
-            sudo yum update -y
-            sudo yum install python-pip -y
-            sudo pip install ansible
-            sudo yum install git -y
-            sudo pip install boto
-            sudo git clone https://github.com/hdgdink/ansible.git
+            sudo yum update -y &&
+            sudo yum install python-pip -y &&
+            sudo pip install ansible &&
+            sudo yum install git -y &&
+            sudo pip install boto &&
+            sudo git clone https://github.com/hdgdink/ansible.git &&
             sudo chmod +x /home/ec2-user/ansible/ec2.py
             export EC2_INI_PATH=/home/ec2-user/ansible/ec2.ini
             export ANSIBLE_HOSTS=./inventory/
             export ANSIBLE_CONFIG=/home/ec2-user/ansible/ansible.cfg
+            echo "export ANSIBLE_HOSTS=./inventory/" >> /home/ec2-user/.bashrc
+            echo "export EC2_INI_PATH=/home/ec2-user/ansible/ec2.ini" >> /home/ec2-user/.bashrc
+            echo "export ANSIBLE_CONFIG=/home/ec2-user/ansible/ansible.cfg" >> /home/ec2-user/.bashrc
             sudo mv /home/ec2-user/ansible/keys/id_rsa /home/ec2-user/.ssh/
             sudo chmod 600 /home/ec2-user/.ssh/id_rsa
             cat /home/ec2-user/ansible/keys/id_rsa.pub >> /home/ec2-user/.ssh/authorized_keys
+            cd /home/ec2-user/ansible/
+            ansible-playbook all.yml
       Tags:
         -
           Key: Name
