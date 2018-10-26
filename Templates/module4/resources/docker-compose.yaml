@@ -18,10 +18,14 @@ services:
     build: ./mySQL
     ports:
       - 3306:3306
+    restart: always
     volumes:
       - ./mariadb:/var/lib/mysql
     environment:
       MYSQL_HOSTNAME: "mariaDB"
+      MARIADB_USER: "root"
+      MARIADB_PASSWORD: "rootroot"
+      MARIADB_DATABASE: "my_database"
 
 
   apache_load_balancer:

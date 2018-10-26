@@ -108,9 +108,11 @@ Resources:
             sudo yum install git -y
             echo "INFO: Git installed"
 
-            git clone https://github.com/hdgdink/docker.git &&
+            mkdir -p /home/ec2-user/.ssh
+            ssh-keyscan -t rsa github.com > /home/ec2-user/.ssh/known_hosts
+            sudo git clone https://github.com/hdgdink/docker.git /home/ec2-user/ &&
             echo "INFO: git repository cloned"
-            cd ~/docker
+            cd /home/ec2-user/docker
             echo "INFO: Containers building..."
             sudo docker-compose up -d --build
             echo "INFO: Containers builded..."
