@@ -110,6 +110,9 @@ Resources:
 
             sudo git clone https://github.com/hdgdink/docker.git &&
             echo "git repository cloned"
+            echo "Containers building..."
+            docker-compose up -d --build
+            echo "Containers builded..."
 
       Tags:
         -
