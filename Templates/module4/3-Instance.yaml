@@ -60,15 +60,15 @@ Resources:
                 Resource: "*"
 
   AnsInstanceProfile:
-    Description: "Profile for Ansible Instance"
+    Description: "Profile for Docker Instance"
     Type: "AWS::IAM::InstanceProfile"
     Properties:
       Path: "/"
       Roles:
         - !Ref AnsIAMRole
 
-  AnsibleInstance:
-    Description: "Control instance with Ansible"
+  DockerInstance:
+    Description: "Control instance with Docker"
     Type: "AWS::EC2::Instance"
     Properties:
       ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", AMI]
@@ -117,4 +117,4 @@ Resources:
       Tags:
         -
           Key: Name
-          Value: "Ansible"
+          Value: "Docker"
