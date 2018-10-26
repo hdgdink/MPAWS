@@ -9,7 +9,7 @@
         
 - name: Allow incoming HTTP connections
   lineinfile:
-    dest=/etc/httpd/conf/httpd.conf 
+    dest=/etc/httpd/conf/lb.conf
     regexp=^Listen 
     line="Listen 0.0.0.0:80"
   notify: restart apache

@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  apache_php:
+    build: ./httpd
+    ports:
+      - 80:80
+    volumes:
+      - ./src:/var/www/html
+    links:
+      - mariadb
+    depends_on:
+      - mariadb
+    environment:
+      APACHE_HOSTNAME: "WebServer1"
+
+  mariadb:
+    image: mariadb:10.3
+    volumes:
+      - ./mariadb:/var/lib/mysql
+    environment:
+      MYSQL_HOSTNAME: "mariaDB"
+
+
+  apache_load_balancer:
+    build: ./balancer
+    ports:
+      - 80:80
+    volumes:
+      - ./src:var/www/html
+    links:
+      - mariadb
+        apache_php
+    depends_on:
+      - apache_php
+    environment:
+      APACHE_HOSTNAME: "WebServer2"
