@@ -112,7 +112,7 @@ Resources:
             echo "INFO: git repository cloned"
             cd ~/docker
             echo "INFO: Containers building..."
-            docker-compose up -d --build
+            sudo docker-compose up -d --build
             echo "INFO: Containers builded..."
 
       Tags:
