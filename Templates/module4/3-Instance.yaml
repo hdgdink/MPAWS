@@ -108,8 +108,9 @@ Resources:
             sudo yum install git -y
             echo "INFO: Git installed"
 
-            sudo git clone https://github.com/hdgdink/docker.git &&
+            sudo git clone https://github.com/hdgdink/docker.git
             echo "INFO: git repository cloned"
+            cd ~/docker
             echo "INFO: Containers building..."
             docker-compose up -d --build
             echo "INFO: Containers builded..."
