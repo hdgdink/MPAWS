@@ -110,7 +110,7 @@ Resources:
 
             mkdir -p /home/ec2-user/.ssh
             ssh-keyscan -t rsa github.com > /home/ec2-user/.ssh/known_hosts
-            sudo git clone https://github.com/hdgdink/docker.git /home/ec2-user/ &&
+            sudo git clone https://github.com/hdgdink/docker.git /home/ec2-user/docker &&
             echo "INFO: git repository cloned"
             cd /home/ec2-user/docker
             echo "INFO: Containers building..."
