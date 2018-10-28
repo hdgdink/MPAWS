@@ -112,6 +112,7 @@ Resources:
             ssh-keyscan -t rsa github.com > /home/ec2-user/.ssh/known_hosts
             sudo git clone https://github.com/hdgdink/docker.git /home/ec2-user/docker &&
             echo "INFO: git repository cloned"
+            sudo chmod 777 /home/ec2-user/docker -R
             cd /home/ec2-user/docker
             echo "INFO: Containers building..."
             sudo docker-compose up -d --build
