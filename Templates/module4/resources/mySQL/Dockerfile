@@ -10,4 +10,3 @@ EXPOSE 3306
 
 RUN chmod 0755 /init.sh
 CMD ["bash", "init.sh"]
-
