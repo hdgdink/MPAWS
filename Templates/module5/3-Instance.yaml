@@ -1,0 +1,133 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  Subnet:
+    Description: "Select the Subnets ID for Instance creation "
+    Type: "AWS::EC2::Subnet::Id"
+
+  VPCAdminSecurityGroup:
+    Description: "Select Admin VPC security groups"
+    Type: AWS::EC2::SecurityGroup::Id
+
+  VPCEC2SecurityGroup:
+    Description: "Select EC2 VPC security groups"
+    Type: AWS::EC2::SecurityGroup::Id
+
+  KeyName:
+     Description: "Name of an existing EC2 KeyPair to enable SSH access to the instance"
+     Type: "AWS::EC2::KeyPair::KeyName"
+
+  InstanceType:
+      Description: "EC2 instance type"
+      Type: String
+      Default: "t2.micro"
+      AllowedValues:
+        - "t1.micro"
+        - "t2.micro"
+        - "t2.small"
+
+Mappings:
+  AWSRegionAMI:
+    us-east-1:
+      AMI: "ami-b70554c8"
+
+Resources:
+
+  AnsIAMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: "root"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action: "*"
+                Resource: "*"
+
+  AnsInstanceProfile:
+    Description: "Profile for Docker Instance"
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles:
+        - !Ref AnsIAMRole
+
+  DockerInstance:
+    Description: "Control instance with Docker"
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", AMI]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref AnsInstanceProfile
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - !Ref VPCAdminSecurityGroup
+            - !Ref VPCEC2SecurityGroup
+          SubnetId:
+            Ref: Subnet
+      UserData:
+        'Fn::Base64':
+          !Sub |
+            #!/bin/bash
+
+            set -e
+
+            sudo yum update -y &&
+            echo "INFO: Yum update completed"
+            sudo chmod 777 /etc/yum.repos.d/ -R
+            sudo cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+              [kubernetes]
+              name=Kubernetes
+              baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+              enabled=1
+              gpgcheck=1
+              repo_gpgcheck=1
+              gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+              EOF
+            sudo yum install -y kubectl
+            curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+            chmod +x kops-linux-amd64
+            sudo mv kops-linux-amd64 /usr/local/bin/kops
+
+
+            yum install -y jq
+            export AWS_DEFAULT_REGION=us-east-1
+            export ZONES=us-east-1a
+            mkdir -p cluster
+            cd cluster/
+            aws ec2 create-key-pair --key-name kops | jq -r '.KeyMaterial' >kopsKey.pem
+            chmod 400 kopsKey.pem
+            ssh-keygen -y -f kopsKey.pem >kopsKey.pub
+            export NAME=awsmp.k8s.local
+            export BUCKET_NAME=aws.mp.module5
+            export KOPS_STATE_STORE=s3://$BUCKET_NAME
+            kops create cluster --name $NAME --master-count 1 --node-count 2 --node-size t2.micro --master-size t2.micro --zones $ZONES --master-zones $ZONES --ssh-public-key kopsKey.pub --networking kubenet --yes
+            export KUBECONFIG=$PWD/config/kubecfg.yaml
+            kops export kubecfg --name $NAME
+            export KUBECONFIG=$PWD/config/kubecfg.yaml
+            kops validate cluster
+
+
+
+      Tags:
+        -
+          Key: Name
+          Value: "Docker"
